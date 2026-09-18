@@ -1,0 +1,6 @@
+{
+  "name": "Platform UGC",
+  "description": "Platform User Generated Content interaktif untuk publikasi konten, feed komunitas, dan interaksi sosial.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
