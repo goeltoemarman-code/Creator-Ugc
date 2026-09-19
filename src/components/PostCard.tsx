@@ -1,7 +1,6 @@
-import React, { useState,} from 'react';
+import React, { useState } from 'react';
 import { Post } from '../types';
 import { useAuth } from '../context/AuthContext';
-
 import {
   Heart,
   MessageSquare,
@@ -11,7 +10,6 @@ import {
   Tag,
   Clock,
   Check,
-  
   Wand2,
 } from 'lucide-react';
 
@@ -34,7 +32,6 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentError, setCommentError] = useState('');
 
-  // Fungsi Ekspor E-Book / Digital Product Siap Jual
   const handleExportPDF = () => {
     const contentText = post.content || '';
     const authorName = post.author?.name || 'Kreator Digital';
@@ -115,23 +112,12 @@ export const PostCard: React.FC<PostCardProps> = ({
     }, 600);
   };
 
-  const commentModeration = useMemo(() => {
-    return checkContentModeration(commentInput);
-  }, [commentInput]);
-
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentInput.trim()) return;
 
     if (!firebaseUser || !token) {
       await signInWithGoogle();
-      return;
-    }
-
-    if (!commentModeration.isClean) {
-      setCommentError(
-        `Moderasi Otomatis: Komentar memuat kata tidak pantas (${commentModeration.flaggedWords.join(', ')}). Mohon sensor atau ubah kata tersebut.`
-      );
       return;
     }
 
@@ -177,9 +163,8 @@ export const PostCard: React.FC<PostCardProps> = ({
   return (
     <article
       id={`post-card-${post.id}`}
-      className="bg-white border border-neutral-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+      className="bg-white border border-neutral-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 mb-4"
     >
-      {/* Header: Author Info & Timestamp */}
       <div className="p-4 sm:p-5 pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -211,7 +196,6 @@ export const PostCard: React.FC<PostCardProps> = ({
         </div>
       </div>
 
-      {/* Post Title & Content */}
       <div className="px-4 sm:px-5 pb-3">
         {post.title && (
           <h2 className="font-bold text-neutral-900 text-base sm:text-lg mb-2 leading-snug">
@@ -222,7 +206,6 @@ export const PostCard: React.FC<PostCardProps> = ({
           {post.content}
         </p>
 
-        {/* Tags */}
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {post.tags.map((tag, idx) => (
@@ -238,7 +221,6 @@ export const PostCard: React.FC<PostCardProps> = ({
         )}
       </div>
 
-      {/* Image Attachment */}
       {post.imageUrl && (
         <div className="px-4 sm:px-5 pb-3">
           <img
@@ -249,7 +231,6 @@ export const PostCard: React.FC<PostCardProps> = ({
         </div>
       )}
 
-      {/* Interaction Bar */}
       <div className="px-4 sm:px-5 py-3 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between text-neutral-500 text-xs">
         <div className="flex items-center gap-4">
           <button
@@ -259,7 +240,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             }`}
           >
             <Heart className={`w-4 h-4 ${isLiking ? 'fill-current text-rose-600' : ''}`} />
-            <span>{post.likes + (isLiking ? 1 : 0)}</span>
+            <span>{(post.likes || 0) + (isLiking ? 1 : 0)}</span>
           </button>
 
           <button
@@ -289,7 +270,6 @@ export const PostCard: React.FC<PostCardProps> = ({
         </button>
       </div>
 
-      {/* TOMBOL E-BOOK/PDF PREMIUM (TAMPIL DI SETIAP POSTINGAN) */}
       <div className="px-4 sm:px-5 py-3 bg-indigo-50/40 border-t border-indigo-100/60">
         <button
           onClick={handleExportPDF}
@@ -301,7 +281,6 @@ export const PostCard: React.FC<PostCardProps> = ({
         </button>
       </div>
 
-      {/* Comments Section */}
       {showComments && (
         <div className="p-4 sm:p-5 bg-neutral-50 border-t border-neutral-100">
           <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
@@ -327,7 +306,6 @@ export const PostCard: React.FC<PostCardProps> = ({
             )}
           </div>
 
-          {/* Input Comment */}
           <form onSubmit={handleCommentSubmit} className="space-y-2">
             <div className="flex gap-2">
               <input
@@ -338,45 +316,18 @@ export const PostCard: React.FC<PostCardProps> = ({
                     : 'Masuk dengan Google untuk memberi komentar...'
                 }
                 value={commentInput}
-                onChange={(e) => {
-                  setCommentInput(e.target.value);
-                  if (commentError) setCommentError('');
-                }}
-                className={`flex-1 px-3.5 py-2 text-xs bg-white border rounded-xl focus:outline-none transition text-neutral-800 ${
-                  !commentModeration.isClean
-                    ? 'border-rose-300 focus:ring-2 focus:ring-rose-500/20'
-                    : 'border-neutral-200 focus:ring-2 focus:ring-neutral-900/10'
-                }`}
+                onChange={(e) => setCommentInput(e.target.value)}
+                className="flex-1 px-3.5 py-2 text-xs bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900/10 text-neutral-800"
               />
               <button
                 type="submit"
-                disabled={!commentInput.trim() || isSubmittingComment || !commentModeration.isClean}
+                disabled={!commentInput.trim() || isSubmittingComment}
                 className="bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
                 <Send className="w-3 h-3" />
                 <span>{isSubmittingComment ? '...' : 'Kirim'}</span>
               </button>
             </div>
-
-            {/* Moderation Warning */}
-            {!commentModeration.isClean && (
-              <div className="flex items-center justify-between p-2 bg-rose-50 border border-rose-200 rounded-lg text-[11px] text-rose-700">
-                <div className="flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                  <span>
-                    Kata tidak pantas: <strong>{commentModeration.flaggedWords.join(', ')}</strong>
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCommentInput(commentModeration.sanitizedText)}
-                  className="flex items-center gap-1 bg-white hover:bg-neutral-100 text-neutral-700 px-2 py-0.5 rounded border border-neutral-300 font-medium"
-                >
-                  <Wand2 className="w-3 h-3 text-amber-500" />
-                  Sensor
-                </button>
-              </div>
-            )}
 
             {commentError && (
               <p className="text-[11px] text-rose-600 font-medium">{commentError}</p>
