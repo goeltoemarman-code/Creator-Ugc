@@ -11,10 +11,8 @@ import {
   Tag,
   Clock,
   Check,
-  LogIn,
   AlertCircle,
   Wand2,
-  Trash2,
 } from 'lucide-react';
 
 interface PostCardProps {
@@ -28,21 +26,13 @@ export const PostCard: React.FC<PostCardProps> = ({
   onToggleBookmark,
   onRefreshFeed,
 }) => {
-  const { firebaseUser, dbUser, token, signInWithGoogle } = useAuth();
+  const { firebaseUser, token, signInWithGoogle } = useAuth();
   const [showComments, setShowComments] = useState(false);
   const [commentInput, setCommentInput] = useState('');
   const [copied, setCopied] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentError, setCommentError] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  // Check if current logged-in user is author of this post
-  const isAuthor = Boolean(
-    (dbUser && post.author?.id === dbUser.id) ||
-    (firebaseUser?.displayName && post.author?.name === firebaseUser.displayName)
-  );
 
   // Fungsi Ekspor E-Book / Digital Product Siap Jual
   const handleExportPDF = () => {
@@ -123,31 +113,6 @@ export const PostCard: React.FC<PostCardProps> = ({
     setTimeout(() => {
       printWindow.print();
     }, 600);
-  };
-
-  const handleDelete = async () => {
-    if (!token) return;
-    try {
-      setIsDeleting(true);
-      const res = await fetch(`/api/posts/${post.id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        onRefreshFeed();
-      } else {
-        const errData = await res.json();
-        alert(errData.error || 'Gagal menghapus postingan');
-      }
-    } catch (err) {
-      console.error('Delete error:', err);
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteConfirm(false);
-    }
   };
 
   const commentModeration = useMemo(() => {
@@ -243,38 +208,6 @@ export const PostCard: React.FC<PostCardProps> = ({
               </div>
             </div>
           </div>
-
-          {/* Author Delete Action */}
-          {isAuthor && (
-            <div>
-              {showDeleteConfirm ? (
-                <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
-                  <span className="text-rose-700 text-[11px] font-medium hidden sm:inline">Hapus?</span>
-                  <button
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className="text-xs font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
-                  >
-                    {isDeleting ? '...' : 'Ya'}
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(false)}
-                    className="text-xs text-neutral-500 hover:text-neutral-700 ml-1"
-                  >
-                    Batal
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="text-neutral-400 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50"
-                  title="Hapus postingan"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
