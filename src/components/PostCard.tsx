@@ -37,58 +37,9 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [commentError, setCommentError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  // Fungsi untuk ekspor PDF siap jual
-  const handleExportPDF = () => {
-    const contentText = post.content || '';
-    const authorName = post.author?.name || 'Kreator Digital';
-    const categoryName = post.category || 'Panduan UGC & E-Commerce';
-    const titleText = post.title || 'Panduan Strategi Konten & Monetisasi Digital';
+  
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="id">
-        <head>
-          <meta charset="UTF-8">
-          <title>${titleText}</title>
-          <style>
-            @page { size: A4; margin: 20mm 15mm; }
-            body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; color: #1f2937; line-height: 1.7; margin: 0; padding: 0; }
-            .header-banner { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: #ffffff; padding: 28px 24px; border-radius: 8px; margin-bottom: 24px; }
-            .badge { display: inline-block; background-color: #6366f1; color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; }
-            .doc-title { font-size: 22px; font-weight: 800; margin: 0 0 8px 0; line-height: 1.3; }
-            .doc-meta { font-size: 13px; color: #c7d2fe; }
-            .content-box { font-size: 14px; white-space: pre-wrap; word-wrap: break-word; margin-bottom: 30px; }
-            .callout { background-color: #f8fafc; border-left: 4px solid #6366f1; padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 20px 0; font-size: 13px; color: #334155; }
-            .footer { border-top: 1px solid #e2e8f0; padding-top: 14px; margin-top: 40px; display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; }
-          </style>
-        </head>
-        <body>
-          <div class="header-banner">
-            <span class="badge">${categoryName}</span>
-            <h1 class="doc-title">${titleText}</h1>
-            <div class="doc-meta">Disusun oleh: <strong>${authorName}</strong> • Hak Cipta Dilindungi</div>
-          </div>
-          <div class="callout">
-            <strong>💡 Catatan Penggunaan:</strong> Dokumen ini berisi panduan praktis dan skrip materi digital. Dilarang mendistribusikan ulang tanpa izin lisensi resmi.
-          </div>
-          <div class="content-box">${contentText}</div>
-          <div class="footer">
-            <span>Diterbitkan via KreatorHub Digital Publisher</span>
-            <span>Siap Jual di Lynk.id</span>
-          </div>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 600);
-  };
+    
 
   // Check if current logged-in user is author of this post
   const isAuthor = Boolean(
