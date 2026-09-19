@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Post } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { checkContentModeration } from '../utils/moderation';
+
 import {
   Heart,
   MessageSquare,
