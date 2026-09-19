@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState,} from 'react';
 import { Post } from '../types';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,7 +11,7 @@ import {
   Tag,
   Clock,
   Check,
-  AlertCircle,
+  
   Wand2,
 } from 'lucide-react';
 
