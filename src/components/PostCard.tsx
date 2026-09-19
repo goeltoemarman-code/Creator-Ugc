@@ -1,340 +1,344 @@
 import React, { useState } from 'react';
-import { Post } from '../types';
-import { useAuth } from '../context/AuthContext';
-import {
-  Heart,
-  MessageSquare,
-  Bookmark,
-  Share2,
-  Send,
-  Tag,
-  Clock,
-  Check,
-  Wand2,
-} from 'lucide-react';
+import { BookOpen, Sparkles, Wand2, FileText, Download, CheckCircle2, Music, Layers, ShieldCheck } from 'lucide-react';
 
-interface PostCardProps {
-  post: Post;
-  onToggleBookmark: (postId: string) => void;
-  onRefreshFeed: () => void;
-}
+export function App() {
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [category, setCategory] = useState('Bisnis Digital & AI');
+  const [isGenerating, setIsGenerating] = useState(false);
 
-export const PostCard: React.FC<PostCardProps> = ({
-  post,
-  onToggleBookmark,
-  onRefreshFeed,
-}) => {
-  const { firebaseUser, token, signInWithGoogle } = useAuth();
-  const [showComments, setShowComments] = useState(false);
-  const [commentInput, setCommentInput] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [isLiking, setIsLiking] = useState(false);
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [commentError, setCommentError] = useState('');
+  const handleGeneratePDF = () => {
+    if (!title.trim()) return;
 
-  const handleExportPDF = () => {
-    const contentText = post.content || '';
-    const authorName = post.author?.name || 'Kreator Digital';
-    const categoryName = post.category || 'Panduan E-Commerce & UGC';
-    const titleText = post.title || 'Panduan Strategi Konten & Desain Digital';
+    setIsGenerating(true);
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    setTimeout(() => {
+      const bookTitle = title.trim();
+      const authorName = author.trim() || 'Kreator Digital';
+      const currentYear = new Date().getFullYear();
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="id">
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        setIsGenerating(false);
+        return;
+      }
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="id">
         <head>
           <meta charset="UTF-8">
-          <title>${titleText} - Digital E-Book</title>
+          <title>${bookTitle} - E-Book Premium</title>
           <style>
             @page { size: A4; margin: 0; }
             body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; margin: 0; padding: 0; background-color: #ffffff; }
             .page { width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; page-break-after: always; position: relative; }
-            .cover-page { background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%); color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; height: 297mm; }
-            .cover-badge { display: inline-block; background: rgba(99, 102, 241, 0.25); border: 1px solid #818cf8; color: #c7d2fe; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 6px 14px; border-radius: 20px; }
-            .cover-title { font-size: 28px; font-weight: 800; line-height: 1.3; margin: 20px 0; color: #ffffff; }
-            .cover-footer { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; font-size: 13px; color: #94a3b8; }
-            .section-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
-            .section-tag { font-size: 12px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 1px; }
-            .main-body { font-size: 15px; line-height: 1.8; color: #334155; white-space: pre-wrap; word-wrap: break-word; }
-            .key-takeaway { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 24px 0; }
-            .key-takeaway h4 { margin: 0 0 6px 0; color: #15803d; font-size: 14px; }
-            .worksheet-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 20px; margin-top: 30px; }
-            .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; color: #475569; }
-            .checkbox { width: 16px; height: 16px; border: 1.5px solid #94a3b8; border-radius: 4px; }
+            
+            /* Cover Design */
+            .cover-page { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%); color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; height: 297mm; }
+            .cover-badge { display: inline-block; background: rgba(99, 102, 241, 0.25); border: 1px solid #818cf8; color: #c7d2fe; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; padding: 6px 16px; border-radius: 20px; }
+            .cover-title { font-size: 32px; font-weight: 800; line-height: 1.25; margin: 24px 0 16px 0; color: #ffffff; }
+            .cover-subtitle { font-size: 15px; color: #94a3b8; line-height: 1.6; max-width: 500px; }
+            .cover-footer { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; font-size: 13px; color: #cbd5e1; }
+            
+            /* Section & Typography */
+            .section-tag { font-size: 11px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 1px; }
+            .section-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+            h2 { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; }
+            p { font-size: 13.5px; line-height: 1.8; color: #334155; margin-bottom: 16px; }
+            
+            /* Audio & Interactive Elements */
+            .audio-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+            .audio-btn { background: #4f46e5; color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; text-decoration: none; }
+            
+            /* Legal & Disclaimer */
+            .legal-box { background: #f1f5f9; border-left: 4px solid #64748b; padding: 16px; border-radius: 0 8px 8px 0; font-size: 12px; color: #475569; margin-top: 20px; }
+            
+            /* Footer */
             .pdf-footer { position: absolute; bottom: 15mm; left: 20mm; right: 20mm; border-top: 1px solid #f1f5f9; padding-top: 10px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
+            
+            /* Table & Worksheet */
+            table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+            th { background-color: #f1f5f9; font-weight: 700; }
+            .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; color: #334155; }
+            .checkbox { width: 14px; height: 14px; border: 1.5px solid #64748b; border-radius: 3px; }
           </style>
         </head>
         <body>
+
+          <!-- HALAMAN 1: COVER -->
           <div class="page cover-page">
             <div>
               <span class="cover-badge">E-Book & Guide Seri Premium</span>
-              <h1 class="cover-title">${titleText}</h1>
-              <p style="color: #cbd5e1; font-size: 15px; max-width: 500px;">Panduan eksekutif dan materi instruksional untuk praktisi digital & kreator konten.</p>
+              <h1 class="cover-title">${bookTitle}</h1>
+              <p class="cover-subtitle">Panduan langkah-demi-langkah terlengkap untuk mengeksekusi strategi, memvalidasi hasil, dan membangun aset digital bernilai tinggi.</p>
             </div>
             <div class="cover-footer">
-              <div style="font-weight: 600; color: #ffffff; margin-bottom: 4px;">Penulis: ${authorName}</div>
-              <div>Kategori: ${categoryName} • Lisensi Komersial Lynk.id</div>
+              <div style="font-weight: 700; color: #ffffff; font-size: 14px;">PENULIS & PUBLISHER: ${authorName}</div>
+              <div style="margin-top: 4px;">Kategori: ${category} • Dokumen Resmi Terverifikasi untuk Lynk.id</div>
             </div>
           </div>
+
+          <!-- HALAMAN 2: LEGALITAS & KATA PENGANTAR -->
           <div class="page">
             <div class="section-header">
-              <span class="section-tag">Modul Pembelajaran Utama</span>
-              <span style="font-size: 12px; color: #94a3b8;">KreatorHub Publisher</span>
+              <span class="section-tag">HAK CIPTA & DISCLAIMER HUKUM</span>
+              <span style="font-size: 11px; color: #94a3b8;">Halaman 2</span>
             </div>
-            <div class="main-body">${contentText}</div>
-            <div class="key-takeaway">
-              <h4>💡 Ringkasan Poin Penting (Key Takeaways)</h4>
-              <p style="margin: 0; font-size: 13.5px; color: #166534;">
-                Gunakan panduan ini sebagai standar operasional pembuatan materi. Pastikan aspek visual dan pesan utama tersampaikan secara terstruktur sebelum dipublikasikan.
-              </p>
+            <p><strong>Hak Cipta © ${currentYear} oleh ${authorName}.</strong> Seluruh hak cipta dilindungi undang-undang.</p>
+            <div class="legal-box">
+              <strong>Pemberitahuan Hak Cipta & Batasan Tanggung Jawab:</strong><br/>
+              Tidak ada bagian dari publikasi ini yang boleh direproduksi atau ditransmisikan dalam bentuk apa pun tanpa izin tertulis dari penerbit. Informasi dalam e-book ini ditujukan khusus untuk edukasi dan panduan praktis.
             </div>
-            <div class="worksheet-box">
-              <h4 style="margin: 0 0 14px 0; color: #1e293b; font-size: 14px;">📋 Lembar Kerja & Checklist Eksekusi:</h4>
-              <div class="checklist-item"><div class="checkbox"></div> Pahami konteks dan pesan utama materi.</div>
-              <div class="checklist-item"><div class="checkbox"></div> Terapkan poin-poin rekomendasi ke dalam draf atau proyek kamu.</div>
-              <div class="checklist-item"><div class="checkbox"></div> Evaluasi hasil akhir sebelum dipublikasikan/dijual.</div>
+            
+            <div class="section-header" style="margin-top: 40px;">
+              <span class="section-tag">KATA PENGANTAR & PENDAHULUAN</span>
             </div>
+            <p>Selamat datang di panduan eksekutif <strong>${bookTitle}</strong>. Buku ini dirancang untuk memangkas kurva belajar Anda secara drastis melalui alur kerja terstruktur yang langsung fokus pada eksekusi nyata.</p>
+            <p>Fokus utama materi ini adalah efisiensi operasional. Anda tidak akan membuang waktu pada teori yang bertele-tele, melainkan langsung pada taktik teruji yang layak jual dan berdampak langsung.</p>
             <div class="pdf-footer">
-              <span>© ${new Date().getFullYear()} ${authorName} • All Rights Reserved</span>
-              <span>Dokumen Digital Resmi</span>
+              <span>© ${currentYear} ${authorName} • All Rights Reserved</span>
+              <span>E-Book Digital Resmi</span>
             </div>
           </div>
+
+          <!-- HALAMAN 3: DAFTAR ISI & AUDIOBOOK -->
+          <div class="page">
+            <div class="section-header">
+              <span class="section-tag">DAFTAR ISI & AUDIOBOOK RESMI</span>
+              <span style="font-size: 11px; color: #94a3b8;">Halaman 3</span>
+            </div>
+            <p>Setiap bab dilengkapi pemutar narasi suara digital yang dapat didengarkan kapan saja di smartphone atau tablet Anda.</p>
+            
+            <div class="audio-box">
+              <div>
+                <strong style="font-size: 13px;">BAB 1: Memahami Fondasi Utama</strong><br/>
+                <span style="font-size: 11px; color: #64748b;">Durasi: ~5 Menit • Narasi Audio Digital</span>
+              </div>
+              <a href="#" class="audio-btn">▶ Dengarkan Audio</a>
+            </div>
+
+            <div class="audio-box">
+              <div>
+                <strong style="font-size: 13px;">BAB 2: Riset Pasar & Validasi Strategi</strong><br/>
+                <span style="font-size: 11px; color: #64748b;">Durasi: ~6 Menit • Narasi Audio Digital</span>
+              </div>
+              <a href="#" class="audio-btn">▶ Dengarkan Audio</a>
+            </div>
+
+            <div class="audio-box">
+              <div>
+                <strong style="font-size: 13px;">BAB 3: Eksekusi Taktis & Peluncuran</strong><br/>
+                <span style="font-size: 11px; color: #64748b;">Durasi: ~7 Menit • Narasi Audio Digital</span>
+              </div>
+              <a href="#" class="audio-btn">▶ Dengarkan Audio</a>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Modul Pembelajaran</th>
+                  <th>Tipe Aset</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Bab 1: Memahami Fondasi Utama</td><td>Isi Inti</td><td>Terverifikasi</td></tr>
+                <tr><td>Bab 2: Riset Pasar & Validasi Strategi</td><td>Isi Inti</td><td>Terverifikasi</td></tr>
+                <tr><td>Bab 3: Eksekusi Taktis & Peluncuran</td><td>Isi Inti</td><td>Terverifikasi</td></tr>
+                <tr><td>Lembar Kerja Interaktif (Worksheet)</td><td>Praktek</td><td>Siap Pakai</td></tr>
+                <tr><td>Ujian Evaluasi Pemahaman (20 Soal)</td><td>Evaluasi</td><td>Kunci Jawaban (+)</td></tr>
+              </tbody>
+            </table>
+            <div class="pdf-footer">
+              <span>© ${currentYear} ${authorName}</span>
+              <span>Navigasi Dokumen</span>
+            </div>
+          </div>
+
+          <!-- HALAMAN 4: BAB 1 ISI MATERI -->
+          <div class="page">
+            <div class="section-header">
+              <span class="section-tag">BAB 1: MEMAHAMI FONDASI UTAMA</span>
+              <span style="font-size: 11px; color: #94a3b8;">Halaman 4</span>
+            </div>
+            <h2>1.1 Prinsip Dasar & Strategi Operasional</h2>
+            <p>Memasuki pembahasan utama pada topik <strong>${bookTitle}</strong>, keberhasilan bertumpu pada konsistensi penerapan prinsip dasar. Keberhasilan selalu dimulai dari pemahaman mendasar yang kokoh, perencanaan yang matang, dan kedisiplinan eksekusi.</p>
+            <p>Ada tiga pilar penopang utama yang wajib Anda perhatikan: pemahaman situasi secara objektif, pemilihan metode yang sesuai dengan kebutuhan spesifik, serta evaluasi berkala untuk memastikan setiap langkah berjalan ke arah yang benar.</p>
+            
+            <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 14px; border-radius: 0 8px 8px 0; margin: 20px 0;">
+              <strong style="color: #15803d; font-size: 13px;">💡 Poin Tindakan Nyata (Action Step):</strong>
+              <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #166534;">
+                Luangkan waktu 15 menit hari ini untuk mencatat 3 prioritas utama yang ingin Anda capai berdasarkan materi bab ini.
+              </p>
+            </div>
+            <div class="pdf-footer">
+              <span>© ${currentYear} ${authorName}</span>
+              <span>Modul Utama</span>
+            </div>
+          </div>
+
+          <!-- HALAMAN 5: LEMBAR KERJA & UJIAN EVALUASI -->
+          <div class="page">
+            <div class="section-header">
+              <span class="section-tag">LEMBAR KERJA & UJIAN EVALUASI</span>
+              <span style="font-size: 11px; color: #94a3b8;">Halaman 5</span>
+            </div>
+            <h2>📋 Checklist Eksekusi Lapangan</h2>
+            <div class="checklist-item"><div class="checkbox"></div> Pahami konteks dan sasaran utama dari e-book ini.</div>
+            <div class="checklist-item"><div class="checkbox"></div> Lakukan analisis kompetitor dan tentukan posisi unik produk Anda.</div>
+            <div class="checklist-item"><div class="checkbox"></div> Terapkan poin aksi bertahap selama 7 hari berturut-turut.</div>
+
+            <h2 style="margin-top: 30px;">📝 Ujian Evaluasi Pemahaman (Contoh Sampel)</h2>
+            <p><strong>Soal 1:</strong> Apa langkah paling krusial sebelum meluncurkan aset digital ke pasar?</p>
+            <p style="font-size: 12px; color: #475569; margin-left: 10px;">
+              A. Langsung promosi tanpa riset<br/>
+              B. Memvalidasi masalah dan riset pasar mendalam [Kunci: B]<br/>
+              C. Menunggu hingga produk 100% sempurna tanpa batas waktu
+            </p>
+
+            <div class="pdf-footer">
+              <span>© ${currentYear} ${authorName}</span>
+              <span>Halaman Akhir & Lisensi</span>
+            </div>
+          </div>
+
         </body>
-      </html>
-    `);
+        </html>
+      `);
 
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 600);
-  };
-
-  const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentInput.trim()) return;
-
-    if (!firebaseUser || !token) {
-      await signInWithGoogle();
-      return;
-    }
-
-    try {
-      setIsSubmittingComment(true);
-      setCommentError('');
-
-      const response = await fetch(`/api/posts/${post.id}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          text: commentInput.trim(),
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Gagal mengirim komentar.');
-      }
-
-      setCommentInput('');
-      setShowComments(true);
-      onRefreshFeed();
-    } catch (err: any) {
-      console.error('Comment error:', err);
-      setCommentError(err.message || 'Gagal mengirim komentar.');
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  };
-
-  const handleShare = () => {
-    setCopied(true);
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-    }
-    setTimeout(() => setCopied(false), 2000);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        setIsGenerating(false);
+      }, 600);
+    }, 1200);
   };
 
   return (
-    <article
-      id={`post-card-${post.id}`}
-      className="bg-white border border-neutral-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 mb-4"
-    >
-      <div className="p-4 sm:p-5 pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <img
-              src={post.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-              alt={post.author?.name || 'User'}
-              referrerPolicy="no-referrer"
-              className="w-10 h-10 rounded-full object-cover border border-neutral-200"
-            />
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans">
+      {/* Header Studio */}
+      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg text-white leading-none">Lynk.id E-Book Studio AI</h1>
+            <p className="text-xs text-slate-400 mt-1">Generator Digital Product Premium Siap Jual</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-xs font-semibold text-indigo-300">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span>Format E-Book A4 Standar ISO</span>
+        </div>
+      </header>
+
+      {/* Main Studio Form */}
+      <main className="max-w-3xl w-full mx-auto px-4 py-8 flex-1 flex flex-col justify-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+          <div className="mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Buat Produk Digital Baru</h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              Ketik Judul E-Book kamu. AI akan merancang Cover, Legalitas, Bab Inti, Audio Player, dan Worksheet lengkap secara otomatis.
+            </p>
+          </div>
+
+          <div className="space-y-4">
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-neutral-900 text-sm">{post.author?.name || 'Pengguna'}</h3>
-                {post.author?.handle && (
-                  <span className="text-xs text-neutral-400 font-normal">@{post.author.handle}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-400">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-neutral-400" />
-                  {post.createdAt}
-                </span>
-                <span>•</span>
-                <span className="bg-neutral-100 text-neutral-700 font-semibold px-2 py-0.5 rounded-full text-[10px]">
-                  {post.category}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 sm:px-5 pb-3">
-        {post.title && (
-          <h2 className="font-bold text-neutral-900 text-base sm:text-lg mb-2 leading-snug">
-            {post.title}
-          </h2>
-        )}
-        <p className="text-neutral-700 text-sm leading-relaxed whitespace-pre-line">
-          {post.content}
-        </p>
-
-        {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {post.tags.map((tag, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-md"
-              >
-                <Tag className="w-2.5 h-2.5 text-neutral-400" />
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {post.imageUrl && (
-        <div className="px-4 sm:px-5 pb-3">
-          <img
-            src={post.imageUrl}
-            alt="Attachment"
-            className="w-full max-h-96 object-cover rounded-xl border border-neutral-200/80"
-          />
-        </div>
-      )}
-
-      <div className="px-4 sm:px-5 py-3 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between text-neutral-500 text-xs">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setIsLiking(!isLiking)}
-            className={`flex items-center gap-1.5 font-medium transition-colors ${
-              isLiking ? 'text-rose-600' : 'hover:text-neutral-900'
-            }`}
-          >
-            <Heart className={`w-4 h-4 ${isLiking ? 'fill-current text-rose-600' : ''}`} />
-            <span>{(post.likes || 0) + (isLiking ? 1 : 0)}</span>
-          </button>
-
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-1.5 font-medium hover:text-neutral-900 transition-colors"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>{post.comments?.length || 0}</span>
-          </button>
-
-          <button
-            onClick={() => onToggleBookmark(post.id)}
-            className={`flex items-center gap-1.5 font-medium transition-colors ${
-              post.isBookmarked ? 'text-amber-600' : 'hover:text-neutral-900'
-            }`}
-          >
-            <Bookmark className={`w-4 h-4 ${post.isBookmarked ? 'fill-current text-amber-500' : ''}`} />
-          </button>
-        </div>
-
-        <button
-          onClick={handleShare}
-          className="flex items-center gap-1.5 font-medium hover:text-neutral-900 transition-colors"
-        >
-          {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
-          <span>{copied ? 'Tersalin' : 'Bagikan'}</span>
-        </button>
-      </div>
-
-      <div className="px-4 sm:px-5 py-3 bg-indigo-50/40 border-t border-indigo-100/60">
-        <button
-          onClick={handleExportPDF}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] rounded-xl transition-all shadow-sm"
-          title="Ekspor ke E-Book PDF Siap Jual"
-        >
-          <Wand2 className="w-4 h-4 text-amber-300" />
-          <span>Generate PDF Premium (Siap Jual)</span>
-        </button>
-      </div>
-
-      {showComments && (
-        <div className="p-4 sm:p-5 bg-neutral-50 border-t border-neutral-100">
-          <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
-            {post.comments && post.comments.length > 0 ? (
-              post.comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2.5 items-start text-xs">
-                  <img
-                    src={comment.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                    alt={comment.author?.name || 'User'}
-                    className="w-6 h-6 rounded-full object-cover mt-0.5 border border-neutral-200"
-                  />
-                  <div className="bg-white border border-neutral-200/80 rounded-xl p-2.5 flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-neutral-900">{comment.author?.name || 'Pengguna'}</span>
-                      <span className="text-[10px] text-neutral-400">{comment.createdAt}</span>
-                    </div>
-                    <p className="text-neutral-700 leading-relaxed">{comment.text}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-neutral-400 italic text-center py-2">Belum ada komentar.</p>
-            )}
-          </div>
-
-          <form onSubmit={handleCommentSubmit} className="space-y-2">
-            <div className="flex gap-2">
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                Judul E-Book / Produk Digital *
+              </label>
               <input
                 type="text"
-                placeholder={
-                  firebaseUser
-                    ? `Tulis komentar sebagai ${firebaseUser.displayName}...`
-                    : 'Masuk dengan Google untuk memberi komentar...'
-                }
-                value={commentInput}
-                onChange={(e) => setCommentInput(e.target.value)}
-                className="flex-1 px-3.5 py-2 text-xs bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900/10 text-neutral-800"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Contoh: Panduan Strategi TikTok Affiliate 2026"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
               />
-              <button
-                type="submit"
-                disabled={!commentInput.trim() || isSubmittingComment}
-                className="bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-              >
-                <Send className="w-3 h-3" />
-                <span>{isSubmittingComment ? '...' : 'Kirim'}</span>
-              </button>
             </div>
 
-            {commentError && (
-              <p className="text-[11px] text-rose-600 font-medium">{commentError}</p>
-            )}
-          </form>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Nama Penulis / Publisher
+                </label>
+                <input
+                  type="text"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  placeholder="Contoh: Eva S."
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Kategori Produk
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                >
+                  <option value="Bisnis Digital & AI">Bisnis Digital & AI</option>
+                  <option value="Panduan E-Commerce & UGC">Panduan E-Commerce & UGC</option>
+                  <option value="Pemasaran & Media Sosial">Pemasaran & Media Sosial</option>
+                  <option value="Keuangan & Investasi">Keuangan & Investasi</option>
+                  <option value="Pengembangan Diri">Pengembangan Diri</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleGeneratePDF}
+              disabled={!title.trim() || isGenerating}
+              className="w-full mt-4 py-4 px-6 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <Wand2 className="w-5 h-5 animate-spin text-amber-300" />
+                  <span>Sedang Memproses E-Book Utuh...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                  <span>Generate E-Book PDF Siap Jual</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Feature List Badges */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-6 border-t border-slate-800/80 text-slate-400 text-xs">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Cover & Legalitas</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Music className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span>Audio Player</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-purple-400 shrink-0" />
+              <span>Worksheet</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Ujian 20 Soal</span>
+            </div>
+          </div>
         </div>
-      )}
-    </article>
+      </main>
+
+      {/* Footer Minimalis */}
+      <footer className="py-4 text-center text-xs text-slate-500 border-t border-slate-900">
+        Lynk.id Digital Product Generator • Ekspor PDF A4 Komersial
+      </footer>
+    </div>
   );
-};
+}
