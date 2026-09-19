@@ -39,7 +39,101 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
 
-    
+      // Fungsi Ekspor E-Book / Digital Product Siap Jual
+  const handleExportPDF = () => {
+    const contentText = post.content || '';
+    const authorName = post.author?.name || 'Kreator Digital';
+    const categoryName = post.category || 'Panduan E-Commerce & UGC';
+    const titleText = post.title || 'Panduan Strategi Konten & Desain Digital';
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="id">
+        <head>
+          <meta charset="UTF-8">
+          <title>${titleText} - Digital E-Book</title>
+          <style>
+            @page { size: A4; margin: 0; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; margin: 0; padding: 0; background-color: #ffffff; }
+            .page { width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; page-break-after: always; position: relative; }
+            
+            /* Cover Page Style */
+            .cover-page { background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%); color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; height: 297mm; }
+            .cover-badge { display: inline-block; background: rgba(99, 102, 241, 0.25); border: 1px solid #818cf8; color: #c7d2fe; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 6px 14px; border-radius: 20px; }
+            .cover-title { font-size: 28px; font-weight: 800; line-height: 1.3; margin: 20px 0; color: #ffffff; }
+            .cover-footer { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; font-size: 13px; color: #94a3b8; }
+            
+            /* Content Page Style */
+            .section-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+            .section-tag { font-size: 12px; font-weight: 700; color: #4f46e5; text-transform: uppercase; tracking: 1px; }
+            .main-body { font-size: 15px; line-height: 1.8; color: #334155; white-space: pre-wrap; word-wrap: break-word; }
+            
+            /* Callout & Worksheet Boxes */
+            .key-takeaway { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 24px 0; }
+            .key-takeaway h4 { margin: 0 0 6px 0; color: #15803d; font-size: 14px; }
+            .worksheet-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 20px; margin-top: 30px; }
+            .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; color: #475569; }
+            .checkbox { width: 16px; height: 16px; border: 1.5px solid #94a3b8; border-radius: 4px; }
+            
+            .pdf-footer { position: absolute; bottom: 15mm; left: 20mm; right: 20mm; border-top: 1px solid #f1f5f9; padding-top: 10px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
+          </style>
+        </head>
+        <body>
+          <!-- HALAMAN 1: COVER E-BOOK -->
+          <div class="page cover-page">
+            <div>
+              <span class="cover-badge">E-Book & Guide Seri Premium</span>
+              <h1 class="cover-title">${titleText}</h1>
+              <p style="color: #cbd5e1; font-size: 15px; max-width: 500px;">Panduan eksekutif dan materi instruksional untuk praktisi digital & kreator konten.</p>
+            </div>
+            <div class="cover-footer">
+              <div style="font-weight: 600; color: #ffffff; margin-bottom: 4px;">Penulis: ${authorName}</div>
+              <div>Kategori: ${categoryName} • Lisensi Komersial Lynk.id</div>
+            </div>
+          </div>
+
+          <!-- HALAMAN 2: MATERI UTAMA & ACTION PLAN -->
+          <div class="page">
+            <div class="section-header">
+              <span class="section-tag">Modul Pembelajaran Utama</span>
+              <span style="font-size: 12px; color: #94a3b8;">KreatorHub Publisher</span>
+            </div>
+            
+            <div class="main-body">${contentText}</div>
+
+            <div class="key-takeaway">
+              <h4>💡 Ringkasan Poin Penting (Key Takeaways)</h4>
+              <p style="margin: 0; font-size: 13.5px; color: #166534;">
+                Gunakan panduan ini sebagai standar operasional pembuatan materi. Pastikan aspek visual dan pesan utama tersampaikan secara terstruktur sebelum dipublikasikan.
+              </p>
+            </div>
+
+            <div class="worksheet-box">
+              <h4 style="margin: 0 0 14px 0; color: #1e293b; font-size: 14px;">📋 Lembar Kerja & Checklist Eksekusi:</h4>
+              <div class="checklist-item"><div class="checkbox"></div> Pahami konteks dan pesan utama materi.</div>
+              <div class="checklist-item"><div class="checkbox"></div> Terapkan poin-poin rekomendasi ke dalam draf atau proyek kamu.</div>
+              <div class="checklist-item"><div class="checkbox"></div> Evaluasi hasil akhir sebelum dipublikasikan/dijual.</div>
+            </div>
+
+            <div class="pdf-footer">
+              <span>© ${new Date().getFullYear()} ${authorName} • All Rights Reserved</span>
+              <span>Dokumen Digital Resmi</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 600);
+  };
+
 
   // Check if current logged-in user is author of this post
   const isAuthor = Boolean(
