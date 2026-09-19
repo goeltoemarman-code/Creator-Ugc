@@ -1,369 +1,257 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Post, SortOption } from './types';
-import { INITIAL_POSTS, CATEGORIES } from './data/initialData';
-import { Navbar } from './components/Navbar';
-import { PostCard } from './components/PostCard';
-import { CreatePostModal } from './components/CreatePostModal';
-import { UserProfileModal } from './components/UserProfileModal';
-import { RoadmapPanel } from './components/RoadmapPanel';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { Sparkles, SlidersHorizontal, BookmarkCheck, RefreshCw, PlusCircle, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, Sparkles, Wand2, CheckCircle2, Music, Layers, ShieldCheck } from 'lucide-react';
 
-function UGCAppContent() {
-  const { firebaseUser, dbUser, signInWithGoogle } = useAuth();
-  const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
-  const [sortOption, setSortOption] = useState<SortOption>('latest');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
-  const [showBookmarksOnly, setShowBookmarksOnly] = useState<boolean>(false);
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('ugc_bookmarks');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+export function App() {
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [category, setCategory] = useState('Bisnis Digital & AI');
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Fetch all posts from PostgreSQL Cloud SQL backend
-  const fetchPostsFromDb = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/posts');
-      if (!res.ok) {
-        throw new Error('Gagal mengambil data dari database PostgreSQL');
+  const handleGeneratePDF = () => {
+    if (!title.trim()) return;
+
+    setIsGenerating(true);
+
+    setTimeout(() => {
+      const bookTitle = title.trim();
+      const authorName = author.trim() || 'Kreator Digital';
+      const currentYear = new Date().getFullYear();
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        setIsGenerating(false);
+        return;
       }
-      const data = await res.json();
-      if (data.posts && data.posts.length > 0) {
-        // Map backend schema to frontend model
-        const formattedPosts: Post[] = data.posts.map((p: any) => {
-          // Check if current logged-in user liked this post
-          const isUserLiked = Array.isArray(p.likes)
-            ? p.likes.some((l: any) => l.userId === dbUser?.id)
-            : false;
 
-          return {
-            id: p.id,
-            author: {
-              id: p.author?.id || 'unknown',
-              name: p.author?.name || 'Kreator',
-              handle: p.author?.handle || '@kreator',
-              avatar:
-                p.author?.avatarUrl ||
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-              bio: p.author?.bio || '',
-            },
-            content: p.content,
-            mediaUrl: p.mediaUrl || undefined,
-            category: p.category || 'Teknologi',
-            tags: Array.isArray(p.tags) ? p.tags : [],
-            likes: p.likesCount || 0,
-            isLiked: isUserLiked,
-            isBookmarked: bookmarkedIds.includes(p.id),
-            createdAt: new Date(p.createdAt).toLocaleDateString('id-ID', {
-              day: 'numeric',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            comments: Array.isArray(p.comments)
-              ? p.comments.map((c: any) => ({
-                  id: c.id,
-                  author: {
-                    id: c.author?.id || 'unknown',
-                    name: c.author?.name || 'Anggota',
-                    handle: c.author?.handle || '@anggota',
-                    avatar:
-                      c.author?.avatarUrl ||
-                      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-                  },
-                  text: c.text,
-                  createdAt: new Date(c.createdAt).toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short',
-                  }),
-                }))
-              : [],
-          };
-        });
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+          <meta charset="UTF-8">
+          <title>${bookTitle} - E-Book Premium</title>
+          <style>
+            @page { size: A4; margin: 0; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; margin: 0; padding: 0; background-color: #ffffff; }
+            .page { width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; page-break-after: always; position: relative; }
+            .cover-page { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%); color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; height: 297mm; }
+            .cover-badge { display: inline-block; background: rgba(99, 102, 241, 0.25); border: 1px solid #818cf8; color: #c7d2fe; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; padding: 6px 16px; border-radius: 20px; }
+            .cover-title { font-size: 32px; font-weight: 800; line-height: 1.25; margin: 24px 0 16px 0; color: #ffffff; }
+            .cover-subtitle { font-size: 15px; color: #94a3b8; line-height: 1.6; max-width: 500px; }
+            .cover-footer { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; font-size: 13px; color: #cbd5e1; }
+            .section-tag { font-size: 11px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 1px; }
+            .section-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+            h2 { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; }
+            p { font-size: 13.5px; line-height: 1.8; color: #334155; margin-bottom: 16px; }
+            .audio-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+            .audio-btn { background: #4f46e5; color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; text-decoration: none; }
+            .legal-box { background: #f1f5f9; border-left: 4px solid #64748b; padding: 16px; border-radius: 0 8px 8px 0; font-size: 12px; color: #475569; margin-top: 20px; }
+            .pdf-footer { position: absolute; bottom: 15mm; left: 20mm; right: 20mm; border-top: 1px solid #f1f5f9; padding-top: 10px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
+            table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+            th { background-color: #f1f5f9; font-weight: 700; }
+            .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; color: #334155; }
+            .checkbox { width: 14px; height: 14px; border: 1.5px solid #64748b; border-radius: 3px; }
+          </style>
+        </head>
+        <body>
+          <div class="page cover-page">
+            <div>
+              <span class="cover-badge">E-Book & Guide Seri Premium</span>
+              <h1 class="cover-title">${bookTitle}</h1>
+              <p class="cover-subtitle">Panduan langkah-demi-langkah terlengkap untuk mengeksekusi strategi, memvalidasi hasil, dan membangun aset digital bernilai tinggi.</p>
+            </div>
+            <div class="cover-footer">
+              <div style="font-weight: 700; color: #ffffff; font-size: 14px;">PENULIS & PUBLISHER: ${authorName}</div>
+              <div style="margin-top: 4px;">Kategori: ${category} • Dokumen Resmi Terverifikasi untuk Lynk.id</div>
+            </div>
+          </div>
+          <div class="page">
+            <div class="section-header">
+              <span class="section-tag">HAK CIPTA & DISCLAIMER HUKUM</span>
+              <span style="font-size: 11px; color: #94a3b8;">Halaman 2</span>
+            </div>
+            <p><strong>Hak Cipta © ${currentYear} oleh ${authorName}.</strong> Seluruh hak cipta dilindungi undang-undang.</p>
+            <div class="legal-box">
+              <strong>Pemberitahuan Hak Cipta & Batasan Tanggung Jawab:</strong><br/>
+              Tidak ada bagian dari publikasi ini yang boleh direproduksi atau ditransmisikan dalam bentuk apa pun tanpa izin tertulis dari penerbit. Informasi dalam e-book ini ditujukan khusus untuk edukasi dan panduan praktis.
+            </div>
+            <div class="section-header" style="margin-top: 40px;">
+              <span class="section-tag">KATA PENGANTAR & PENDAHULUAN</span>
+            </div>
+            <p>Selamat datang di panduan eksekutif <strong>${bookTitle}</strong>. Buku ini dirancang untuk memangkas kurva belajar Anda secara drastis melalui alur kerja terstruktur yang langsung fokus pada eksekusi nyata.</p>
+            <div class="pdf-footer">
+              <span>© ${currentYear} ${authorName} • All Rights Reserved</span>
+              <span>E-Book Digital Resmi</span>
+            </div>
+          </div>
+          <div class="page">
+            <div class="section-header">
+              <span class="section-tag">DAFTAR ISI & AUDIOBOOK RESMI</span>
+              <span style="font-size: 11px; color: #94a3b8;">Halaman 3</span>
+            </div>
+            <div class="audio-box">
+              <div>
+                <strong style="font-size: 13px;">BAB 1: Memahami Fondasi Utama</strong><br/>
+                <span style="font-size: 11px; color: #64748b;">Durasi: ~5 Menit • Narasi Audio Digital</span>
+              </div>
+              <a href="#" class="audio-btn">▶ Dengarkan Audio</a>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Modul Pembelajaran</th>
+                  <th>Tipe Aset</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Bab 1: Memahami Fondasi Utama</td><td>Isi Inti</td><td>Terverifikasi</td></tr>
+                <tr><td>Lembar Kerja Interaktif (Worksheet)</td><td>Praktek</td><td>Siap Pakai</td></tr>
+                <tr><td>Ujian Evaluasi Pemahaman (20 Soal)</td><td>Evaluasi</td><td>Kunci Jawaban (+)</td></tr>
+              </tbody>
+            </table>
+            <div class="pdf-footer">
+              <span>© ${currentYear} ${authorName}</span>
+              <span>Navigasi Dokumen</span>
+            </div>
+          </div>
+          <div class="page">
+            <div class="section-header">
+              <span class="section-tag">BAB 1: MEMAHAMI FONDASI UTAMA</span>
+              <span style="font-size: 11px; color: #94a3b8;">Halaman 4</span>
+            </div>
+            <h2>1.1 Prinsip Dasar & Strategi Operasional</h2>
+            <p>Memasuki pembahasan utama pada topik <strong>${bookTitle}</strong>, keberhasilan bertumpu pada konsistensi penerapan prinsip dasar.</p>
+            <div class="pdf-footer">
+              <span>© ${currentYear} ${authorName}</span>
+              <span>Modul Utama</span>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
 
-        setPosts(formattedPosts);
-      } else {
-        setPosts(INITIAL_POSTS);
-      }
-    } catch (err: any) {
-      console.warn('API notice, fallback to current posts state:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [bookmarkedIds, dbUser]);
-
-  useEffect(() => {
-    fetchPostsFromDb();
-  }, [fetchPostsFromDb]);
-
-  // Save bookmarks to localStorage
-  const handleToggleBookmark = (postId: string) => {
-    setBookmarkedIds((prev) => {
-      const next = prev.includes(postId)
-        ? prev.filter((id) => id !== postId)
-        : [...prev, postId];
-      localStorage.setItem('ugc_bookmarks', JSON.stringify(next));
-      return next;
-    });
-
-    setPosts((prev) =>
-      prev.map((p) => (p.id === postId ? { ...p, isBookmarked: !p.isBookmarked } : p))
-    );
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        setIsGenerating(false);
+      }, 600);
+    }, 1200);
   };
 
-  // Filter and sort posts (Order by newest first by default)
-  const filteredPosts = useMemo(() => {
-    return posts
-      .filter((post) => {
-        if (selectedCategory !== 'Semua' && post.category !== selectedCategory) {
-          return false;
-        }
-        if (showBookmarksOnly && !post.isBookmarked) {
-          return false;
-        }
-        if (searchQuery.trim()) {
-          const query = searchQuery.toLowerCase();
-          const matchesContent = post.content.toLowerCase().includes(query);
-          const matchesAuthor =
-            post.author.name.toLowerCase().includes(query) ||
-            post.author.handle.toLowerCase().includes(query);
-          const matchesTags = post.tags.some((tag) => tag.toLowerCase().includes(query));
-          const matchesCategory = post.category.toLowerCase().includes(query);
-          return matchesContent || matchesAuthor || matchesTags || matchesCategory;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortOption === 'popular') {
-          return b.likes + b.comments.length * 2 - (a.likes + a.comments.length * 2);
-        }
-        // By default, preserve newest first order from backend (descending)
-        return 0;
-      });
-  }, [posts, selectedCategory, showBookmarksOnly, searchQuery, sortOption]);
-
-  const bookmarkedCount = posts.filter((p) => p.isBookmarked).length;
-
   return (
-    <div className="min-h-screen bg-neutral-100/60 text-neutral-900 flex flex-col font-sans">
-      {/* Top Navbar */}
-      <Navbar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
-        onOpenProfileModal={() => setIsProfileModalOpen(true)}
-      />
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Architecture & Cloud SQL Status Panel */}
-        <RoadmapPanel />
-
-        {/* Quick Create Prompt Bar */}
-        <div
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-white border border-neutral-200/90 hover:border-neutral-300 rounded-2xl p-4 shadow-xs flex items-center gap-3.5 cursor-pointer transition group"
-        >
-          <div className="w-10 h-10 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-500 font-bold shrink-0 overflow-hidden">
-            {firebaseUser ? (
-              <img
-                src={firebaseUser.photoURL || ''}
-                alt="Avatar"
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <PlusCircle className="w-5 h-5 text-neutral-400 group-hover:text-neutral-700 transition" />
-            )}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans">
+      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+            <BookOpen className="w-6 h-6" />
           </div>
-          <div className="flex-1 bg-neutral-50 group-hover:bg-neutral-100/80 border border-neutral-200/80 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-neutral-400 transition">
-            {firebaseUser
-              ? `Apa yang ingin kamu bagikan hari ini, ${firebaseUser.displayName}? (Dilengkapi filter moderasi)`
-              : 'Buat postingan baru atau bagikan ide karya Anda ke komunitas...'}
+          <div>
+            <h1 className="font-bold text-lg text-white leading-none">Lynk.id E-Book Studio AI</h1>
+            <p className="text-xs text-slate-400 mt-1">Generator Digital Product Premium Siap Jual</p>
           </div>
-          <button
-            id="quick-create-btn"
-            className="hidden sm:flex items-center gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Buat Postingan
-          </button>
         </div>
+        <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-xs font-semibold text-indigo-300">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span>Format E-Book A4 Standar ISO</span>
+        </div>
+      </header>
 
-        {/* Feed Controls & Category Filter */}
-        <div className="bg-white border border-neutral-200/90 rounded-2xl p-3.5 sm:p-4 shadow-xs space-y-3">
-          {/* Categories Tab Scroll */}
-          <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1 scrollbar-none">
-            <div className="flex items-center gap-1.5 shrink-0">
-              {CATEGORIES.map((cat) => {
-                const isActive = selectedCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    id={`filter-category-${cat.id.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition shrink-0 ${
-                      isActive
-                        ? 'bg-neutral-900 text-white shadow-xs'
-                        : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Bookmarks Filter */}
-            <button
-              id="filter-bookmarks-btn"
-              onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
-              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-semibold transition shrink-0 ${
-                showBookmarksOnly
-                  ? 'bg-amber-50 border-amber-300 text-amber-900 shadow-2xs'
-                  : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-              }`}
-            >
-              <BookmarkCheck
-                className={`w-3.5 h-3.5 ${showBookmarksOnly ? 'text-amber-600' : 'text-neutral-400'}`}
+      <main className="max-w-3xl w-full mx-auto px-4 py-8 flex-1 flex flex-col justify-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+          <div className="mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Buat Produk Digital Baru</h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              Ketik Judul E-Book kamu. AI akan merancang Cover, Legalitas, Bab Inti, Audio Player, dan Worksheet lengkap secara otomatis.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                Judul E-Book / Produk Digital *
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Contoh: Panduan Strategi TikTok Affiliate 2026"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
               />
-              <span>Tersimpan</span>
-              {bookmarkedCount > 0 && (
-                <span className="bg-neutral-200 text-neutral-700 text-[10px] px-1.5 rounded-full font-bold">
-                  {bookmarkedCount}
-                </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Nama Penulis / Publisher
+                </label>
+                <input
+                  type="text"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  placeholder="Contoh: Eva S."
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Kategori Produk
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                >
+                  <option value="Bisnis Digital & AI">Bisnis Digital & AI</option>
+                  <option value="Panduan E-Commerce & UGC">Panduan E-Commerce & UGC</option>
+                  <option value="Pemasaran & Media Sosial">Pemasaran & Media Sosial</option>
+                  <option value="Keuangan & Investasi">Keuangan & Investasi</option>
+                  <option value="Pengembangan Diri">Pengembangan Diri</option>
+                </select>
+              </div>
+            </div>
+            <button
+              onClick={handleGeneratePDF}
+              disabled={!title.trim() || isGenerating}
+              className="w-full mt-4 py-4 px-6 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <Wand2 className="w-5 h-5 animate-spin text-amber-300" />
+                  <span>Sedang Memproses E-Book Utuh...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                  <span>Generate E-Book PDF Siap Jual</span>
+                </>
               )}
             </button>
           </div>
-
-          {/* Sub-bar: Status count & Sorting */}
-          <div className="flex items-center justify-between pt-2 border-t border-neutral-100 text-xs text-neutral-500">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-6 border-t border-slate-800/80 text-slate-400 text-xs">
             <div className="flex items-center gap-2">
-              <span>
-                Feed Komunitas: <strong className="text-neutral-800">{filteredPosts.length}</strong> postingan
-                {selectedCategory !== 'Semua' && ` di kategori "${selectedCategory}"`}
-              </span>
-              {firebaseUser && (
-                <button
-                  type="button"
-                  id="feed-my-profile-btn"
-                  onClick={() => setIsProfileModalOpen(true)}
-                  className="hidden md:inline-flex items-center gap-1 font-semibold text-neutral-700 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200/80 px-2.5 py-1 rounded-md transition"
-                >
-                  <User className="w-3 h-3 text-neutral-500" />
-                  Postingan Saya
-                </button>
-              )}
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Cover & Legalitas</span>
             </div>
-
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="hidden sm:inline font-medium">Urutan:</span>
-              <select
-                id="sort-posts-select"
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value as SortOption)}
-                className="bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 text-xs text-neutral-700 focus:outline-none focus:border-neutral-900 font-medium"
-              >
-                <option value="latest">Terbaru (Default)</option>
-                <option value="popular">Terpopuler (Paling Disukai)</option>
-              </select>
-
-              <button
-                onClick={fetchPostsFromDb}
-                title="Perbarui feed dari PostgreSQL"
-                className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition ml-1"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              </button>
+              <Music className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span>Audio Player</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-purple-400 shrink-0" />
+              <span>Worksheet</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Ujian 20 Soal</span>
             </div>
           </div>
         </div>
-
-        {/* Feed Posts List */}
-        <div className="space-y-4">
-          {loading && posts.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-neutral-200 rounded-2xl">
-              <RefreshCw className="w-6 h-6 text-neutral-400 animate-spin mx-auto mb-2" />
-              <p className="text-xs text-neutral-500">Memuat postingan terbaru dari PostgreSQL Cloud SQL...</p>
-            </div>
-          ) : filteredPosts.length === 0 ? (
-            <div className="bg-white border border-neutral-200 rounded-2xl p-10 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-neutral-800 text-base">Tidak ada konten ditemukan</h3>
-              <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-                {searchQuery
-                  ? `Tidak ada postingan yang sesuai dengan kata kunci "${searchQuery}".`
-                  : 'Belum ada postingan di filter ini. Jadilah yang pertama membuat konten!'}
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('Semua');
-                  setShowBookmarksOnly(false);
-                }}
-                className="text-xs font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 px-4 py-2 rounded-lg transition"
-              >
-                Reset Filter
-              </button>
-            </div>
-          ) : (
-            filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onToggleBookmark={handleToggleBookmark}
-                onRefreshFeed={fetchPostsFromDb}
-              />
-            ))
-          )}
-        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-neutral-200/90 bg-white py-6 mt-12 text-center text-xs text-neutral-500">
-        <p className="font-semibold text-neutral-700">
-          KreatorHub UGC • Platform Konten Pengguna Full-Stack
-        </p>
-        <p className="mt-1 text-neutral-400">
-          Cloud SQL (PostgreSQL) • Drizzle ORM • Firebase Auth • Sistem Moderasi Otomatis
-        </p>
+      <footer className="py-4 text-center text-xs text-slate-500 border-t border-slate-900">
+        Lynk.id Digital Product Generator • Ekspor PDF A4 Komersial
       </footer>
-
-      {/* Create Post Modal */}
-      <CreatePostModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmitSuccess={fetchPostsFromDb}
-      />
-
-      {/* User Profile & My Posts Modal */}
-      <UserProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        posts={posts}
-        onRefreshFeed={fetchPostsFromDb}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
-      />
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <UGCAppContent />
-    </AuthProvider>
   );
 }
